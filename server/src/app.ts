@@ -1,5 +1,6 @@
-import cors from "cors";
+﻿import cors from "cors";
 import express from "express";
+import { categoryRouter } from "./routes/category.js";
 import { expenseRouter } from "./routes/expense.js";
 
 // Builds the Express app but does not start listening, so it can be
@@ -12,4 +13,5 @@ app.use(cors());
 // Parse JSON request bodies into req.body.
 app.use(express.json());
 
+app.use("/api/categories", categoryRouter);
 app.use("/api/expenses", expenseRouter);
