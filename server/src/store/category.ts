@@ -1,34 +1,38 @@
-import { randomUUID } from "node:crypto";
+import { pool } from "../db/pool.js";
 import type { Category, NewCategory } from "../types/category.js";
 
-const categories: Category[] = [
-	{ id: randomUUID(), name: "Groceries" },
-	{ id: randomUUID(), name: "Transport" },
-];
-
-export function getCategories(): Category[] {
-	return categories;
+export async function getCategories(): Promise<Category[]> {
+	const { rows } = await pool.query(
+		"SELECT id, name FROM categories ORDER BY name",
+	);
+	return rows;
 }
 
-export function addCategory(newCategory: NewCategory): Category {
-	const category: Category = { id: randomUUID(), ...newCategory };
-	categories.push(category);
-	return category;
+export async function addCategory(newCategory: NewCategory): Promise<Category> {
+	const { rows } = await pool.query(
+		"INSERT INTO categories (name) VALUES ($1) RETURNING id, name",
+		[newCategory.name],
+	);
+	return rows[0];
 }
 
-export function updateCategory(
+
+export async function updateCategory(
 	id: string,
 	update: NewCategory,
-): Category | null {
-	const category = categories.find((category) => category.id === id);
-	if (!category) return null;
-	Object.assign(category, update);
-	return category;
+): Promise<Category | null> {
+	const { rows } = await pool.query(
+		"UPDATE categories SET name = $1 WHERE id = $2 RETURNING id, name",
+		[update.name, id],
+	);
+	return rows[0] ?? null;
 }
 
-export function deleteCategory(id: string): boolean {
-	const index = categories.findIndex((category) => category.id === id);
-	if (index === -1) return false;
-	categories.splice(index, 1);
-	return true;
+
+export async function deleteCategory(id: string): Promise<boolean> {
+	const { rowCount } = await pool.query(
+		"DELETE FROM categories WHERE id = $1",
+		[id],
+	);
+	return rowCount !== null && rowCount > 0;
 }
