@@ -1,55 +1,63 @@
 import { Router } from "express";
 import {
-    addCategory,
-    deleteCategory,
-    getCategories,
-    updateCategory,
+	addCategory,
+	deleteCategory,
+	getCategories,
+	updateCategory,
 } from "../store/category.js";
 import type { NewCategory } from "../types/category.js";
 
+// Validates and narrows an unknown request body into a NewCategory,
+// or returns null if any required field is missing/wrong type.
 function parseNewCategory(body: unknown): NewCategory | null {
-    const { name } = body as Partial<NewCategory>;
-    if (typeof name !== "string") {
-        return null;
-    }
-    return { name };
+	const { name } = body as Partial<NewCategory>;
+
+	if (typeof name !== "string") {
+		return null;
+	}
+
+	return { name };
 }
 
+// Mounted at /api/categories in app.ts, so routes here are relative
+// (e.g. "/" is GET /api/categories, "/:id" is GET /api/categories/:id).
 export const categoryRouter = Router();
 
 categoryRouter.get("/", (_req, res) => {
-    res.json(getCategories());
+	res.json(getCategories());
 });
 
 categoryRouter.post("/", (req, res) => {
-    const newCategory = parseNewCategory(req.body);
-    if (!newCategory) {
-        res.status(400).json({ error: "name is required" });
-        return;
-    }
-    const category = addCategory(newCategory);
-    res.status(201).json(category);
+	const newCategory = parseNewCategory(req.body);
+	if (!newCategory) {
+		res.status(400).json({ error: "name is required" });
+		return;
+	}
+
+	const category = addCategory(newCategory);
+	res.status(201).json(category);
 });
 
 categoryRouter.put("/:id", (req, res) => {
-    const update = parseNewCategory(req.body);
-    if (!update) {
-        res.status(400).json({ error: "name is required" });
-        return;
-    }
-    const category = updateCategory(req.params.id, update);
-    if (!category) {
-        res.status(404).json({ error: "Category not found" });
-        return;
-    }
-    res.json(category);
+	const update = parseNewCategory(req.body);
+	if (!update) {
+		res.status(400).json({ error: "name is required" });
+		return;
+	}
+
+	const category = updateCategory(req.params.id, update);
+	if (!category) {
+		res.status(404).json({ error: "Category not found" });
+		return;
+	}
+	res.json(category);
 });
 
 categoryRouter.delete("/:id", (req, res) => {
-    const deleted = deleteCategory(req.params.id);
-    if (!deleted) {
-        res.status(404).json({ error: "Category not found" });
-        return;
-    }
-    res.status(204).send();
+	const deleted = deleteCategory(req.params.id);
+	if (!deleted) {
+		res.status(404).json({ error: "Category not found" });
+		return;
+	}
+	res.status(204).send();
 });

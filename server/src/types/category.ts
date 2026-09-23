@@ -1,6 +1,6 @@
 export type Category = {
-    id: string;
-    name: string;
+	id: string;
+	name: string;
 };
 
 // Shape of the data a client sends when creating or updating a category;
