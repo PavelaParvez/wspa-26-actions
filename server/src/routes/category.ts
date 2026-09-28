@@ -7,7 +7,9 @@ import {
 } from "../store/category.js";
 import type { NewCategory } from "../types/category.js";
 
-function parseNewCategory(body: unknown): NewCategory | null {
+// Validates and narrows an unknown request body into a NewCategory,
+// or returns null if the name is missing/wrong type.
+export function parseNewCategory(body: unknown): NewCategory | null {
 	const { name } = body as Partial<NewCategory>;
 
 	if (typeof name !== "string") {
@@ -17,6 +19,8 @@ function parseNewCategory(body: unknown): NewCategory | null {
 	return { name };
 }
 
+// Mounted at /api/categories in app.ts, so routes here are relative
+// (e.g. "/" is GET /api/categories, "/:id" is GET /api/categories/:id).
 export const categoryRouter = Router();
 
 categoryRouter.get("/", async (_req, res) => {

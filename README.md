@@ -1,89 +1,76 @@
 # Expense Tracker
 
-Starting point for the Web Software Production course project. 
-This project will grow week by week.
+Course project for Web Software Production.
 
 - `client/` — React + Vite + TypeScript frontend
-- `server/` — Node + Express + TypeScript backend (in-memory storage)
+- `server/` — Node + Express + TypeScript backend
+- `db/` — PostgreSQL schema and seed data (`db/init/001-schema.sql`)
 
-Each part is an independent npm project with its own `node_modules`, and its own Biome config for linting/formatting.
+## Running the whole stack (Docker Compose)
 
-## Running
+    docker compose up -d
 
-**Server** (http://localhost:3001):
+- client: http://localhost:8080
+- server: http://localhost:3001
+- db: localhost:5432 (PostgreSQL)
+- adminer: http://localhost:8088
 
-```
-cd server
-npm install
-npm run dev
-```
+## Storage
 
-Starts the Express API with `tsx watch`, so it restarts on file changes. Once it's up you should see `Server listening on http://localhost:3001` in the terminal.
+The server stores data in **PostgreSQL** (not in memory), through the connection pool in `server/src/db/pool.ts`. Connection details come from the environment variables `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` and `PGDATABASE`. Inside Compose they are set in `compose.yaml`; when running the server on its own they are read from `server/.env`.
 
-```
-src/
-  app.ts                     # configures the Express app (middleware + routes)
-  server.ts                  # entry point: starts listening
-  types/expense.ts           # Expense / NewExpense types
-  store/expense.ts           # in-memory storage
-  routes/expense.ts          # GET/POST/PUT/DELETE handlers, mounted at /api/expenses
-```
+## Running the server on its own
 
-Storage is in-memory only (see `server/src/store/expense.ts`) — data resets every time the server restarts, and it isn't shared across multiple server instances. There's no database yet.
+1. Start only the database: `docker compose up -d db`
+2. Copy `server/.env.example` to `server/.env` and fill in: `PGHOST=localhost`, `PGPORT=5432`, `PGUSER=app`, `PGPASSWORD=app_pw`, `PGDATABASE=app_db`. The `.env` file is git-ignored and must never be committed.
+3. Run:
 
-Available endpoints, all under `/api/expenses`:
+        cd server
+        npm install
+        npm run dev
 
-| Method | Path             | Description                    |
-| ------ | ---------------- | ------------------------------ |
-| GET    | `/api/expenses`     | List all expenses           |
-| POST   | `/api/expenses`     | Create an expense           |
-| PUT    | `/api/expenses/:id` | Update an expense           |
-| DELETE | `/api/expenses/:id` | Delete an expense           |
+## API endpoints
 
-`POST`/`PUT` expect a JSON body with `description` (string), `amount` (number), and `date` (ISO string, e.g. `2026-08-01`); a missing/wrong-typed field returns `400`. Updating or deleting an unknown `id` returns `404`.
+| Method | Path                  | Description         |
+| ------ | --------------------- | ------------------- |
+| GET    | `/api/expenses`       | List all expenses   |
+| POST   | `/api/expenses`       | Create an expense   |
+| PUT    | `/api/expenses/:id`   | Update an expense   |
+| DELETE | `/api/expenses/:id`   | Delete an expense   |
+| GET    | `/api/categories`     | List all categories |
+| POST   | `/api/categories`     | Create a category   |
+| PUT    | `/api/categories/:id` | Update a category   |
+| DELETE | `/api/categories/:id` | Delete a category   |
 
-You can try it without the client, e.g.:
+Invalid body returns `400`, unknown id returns `404`, successful delete returns `204`.
 
-```
-curl http://localhost:3001/api/expenses
-```
+## Testing the server
 
-**Client** (http://localhost:5173):
+The server has a Vitest test suite in `server/test/`:
 
-```
-cd client
-npm install
-npm run dev
-```
+- **Unit tests** (`*.unit.test.ts`) for the pure functions `toExpense`, `parseNewExpense` and `parseNewCategory`. No database needed.
+- **Integration tests** (`*.integration.test.ts`) that send real HTTP requests to the app with Supertest, against a real PostgreSQL database.
 
-Starts the Vite dev server with hot reload. The app calls the API directly at `http://localhost:3001`, so the server needs to be running too (see above) — without it you'll see a "Failed to fetch" error in the browser console.
+The tests use a **separate database, `app_test_db`**, so they never touch development data. Settings are in `server/vitest.config.ts`.
 
-The UI is split by responsibility rather than kept in one file:
+One-time setup, from the project root with the database running:
 
-```
-src/
-  types/expense.ts          # Expense / NewExpense types
-  api/expenses.ts           # the only place that calls fetch()
-  hooks/useExpenses.ts      # owns the expenses state, exposes add/edit/remove
-  utils/date.ts             # dd.mm.yyyy <-> ISO date conversion
-  utils/currency.ts         # € formatting
-  components/
-    ExpenseForm.tsx         # add-expense form
-    ExpenseList.tsx         # renders one ExpenseListItem per expense
-    ExpenseListItem.tsx     # a row; toggles its own view/edit mode
-    ExpenseTotal.tsx        # running total
-  App.tsx                   # composition root, no fetch/state logic itself
-```
+    docker compose exec db psql -U app -d app_db -c "CREATE DATABASE app_test_db;"
+    docker compose exec -T db psql -U app -d app_test_db < db/init/001-schema.sql
+
+Run the tests (start the database first with `docker compose up -d db`):
+
+    cd server
+    npm test
+
+## Client
+
+    cd client
+    npm install
+    npm run dev
+
+Runs at http://localhost:5173 and calls the API at http://localhost:3001.
 
 ## Linting
 
-[Biome](https://biomejs.dev/) handles both linting and formatting — there's no separate Prettier/ESLint setup. `client/` and `server/` each have their own `biome.json`, so they can drift independently as the course progresses; there's no shared/root config to keep in sync.
-
-Run from inside either project:
-
-```
-npm run lint      # check formatting, imports, and lint rules
-npm run lint:fix  # same, but apply the fixes it can make automatically
-```
-
-`lint:fix` won't touch anything it can't fix safely (e.g. an unused variable) — it'll still report those for you to fix by hand.
+Run `npm run lint` or `npm run lint:fix` inside `client/` or `server/`.
