@@ -7,7 +7,9 @@ import {
 } from "../store/expense.js";
 import type { NewExpense } from "../types/expense.js";
 
-function parseNewExpense(body: unknown): NewExpense | null {
+// Validates and narrows an unknown request body into a NewExpense,
+// or returns null if any required field is missing/wrong type.
+export function parseNewExpense(body: unknown): NewExpense | null {
 	const { description, amount, date } = body as Partial<NewExpense>;
 
 	if (
@@ -21,6 +23,8 @@ function parseNewExpense(body: unknown): NewExpense | null {
 	return { description, amount, date };
 }
 
+// Mounted at /api/expenses in app.ts, so routes here are relative
+// (e.g. "/" is GET /api/expenses, "/:id" is GET /api/expenses/:id).
 export const expenseRouter = Router();
 
 expenseRouter.get("/", async (_req, res) => {
