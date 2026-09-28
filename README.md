@@ -74,3 +74,15 @@ Runs at http://localhost:5173 and calls the API at http://localhost:3001.
 ## Linting
 
 Run `npm run lint` or `npm run lint:fix` inside `client/` or `server/`.
+
+## End-to-end tests (Playwright)
+
+Browser tests live in `client/e2e/` and drive the real app through the UI (smoke test, expense add/edit/delete, category add/delete). They need the whole stack running:
+
+    docker compose up -d
+    cd client
+    npm install
+    npx playwright install chromium
+    npm run test:e2e
+
+Add `-- --ui` to watch them run. Set `E2E_BASE_URL` to run them against another environment (default is http://localhost:8080).
