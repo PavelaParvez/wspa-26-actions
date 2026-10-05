@@ -16,7 +16,6 @@ export async function addCategory(newCategory: NewCategory): Promise<Category> {
 	return rows[0];
 }
 
-
 export async function updateCategory(
 	id: string,
 	update: NewCategory,
@@ -27,7 +26,6 @@ export async function updateCategory(
 	);
 	return rows[0] ?? null;
 }
-
 
 export async function deleteCategory(id: string): Promise<boolean> {
 	const { rowCount } = await pool.query(

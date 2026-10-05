@@ -16,7 +16,10 @@ describe("parseNewExpense", () => {
 	});
 
 	it("returns null when amount is missing", () => {
-		const result = parseNewExpense({ description: "Coffee", date: "2026-08-10" });
+		const result = parseNewExpense({
+			description: "Coffee",
+			date: "2026-08-10",
+		});
 		expect(result).toBeNull();
 	});
 
