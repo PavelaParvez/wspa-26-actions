@@ -2,6 +2,7 @@ stages:
   - lint
   - build
   - test
+  - e2e
 
 lint-client:
   stage: lint
@@ -41,11 +42,9 @@ test-server:
   services:
     - name: postgres:16
   variables:
-  
     POSTGRES_USER: app
     POSTGRES_PASSWORD: app_pw
     POSTGRES_DB: app_test_db
-    
     PGHOST: postgres
     PGPORT: "5432"
     PGUSER: app
@@ -57,3 +56,33 @@ test-server:
     - cd server
     - npm ci
     - npm test
+
+
+test-e2e:
+  stage: e2e
+  image: mcr.microsoft.com/playwright:v1.63.0-noble
+  services:
+    - name: postgres:16
+  variables:
+    POSTGRES_USER: app
+    POSTGRES_PASSWORD: app_pw
+    POSTGRES_DB: app_db
+    PGHOST: postgres
+    PGPORT: "5432"
+    PGUSER: app
+    PGPASSWORD: app_pw
+    PGDATABASE: app_db
+    E2E_BASE_URL: "http://localhost:4173"
+  script:
+    - apt-get update && apt-get install -y postgresql-client
+    - psql -h postgres -U app -d app_db -f db/init/001-schema.sql
+   
+    - cd server && npm ci
+    - npm run start:ci &
+
+    - cd ../client && npm ci
+    - npm run build
+    - npx vite preview --port 4173 --host &
+
+    - sleep 10
+    - npx playwright test
