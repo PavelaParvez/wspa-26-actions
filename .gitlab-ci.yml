@@ -18,7 +18,6 @@ lint-server:
     - npm ci
     - npm run lint
 
-
 build-client:
   stage: build
   image: node:22
@@ -26,7 +25,6 @@ build-client:
     - cd client
     - npm ci
     - npm run build
-
 
 build-server:
   stage: build
