@@ -1,6 +1,7 @@
 stages:
   - lint
   - build
+  - test
 
 lint-client:
   stage: lint
@@ -33,3 +34,26 @@ build-server:
     - cd server
     - npm ci
     - npm run build
+
+test-server:
+  stage: test
+  image: node:22
+  services:
+    - name: postgres:16
+  variables:
+  
+    POSTGRES_USER: app
+    POSTGRES_PASSWORD: app_pw
+    POSTGRES_DB: app_test_db
+    
+    PGHOST: postgres
+    PGPORT: "5432"
+    PGUSER: app
+    PGPASSWORD: app_pw
+    PGDATABASE: app_test_db
+  script:
+    - apt-get update && apt-get install -y postgresql-client
+    - psql -h postgres -U app -d app_test_db -f db/init/001-schema.sql
+    - cd server
+    - npm ci
+    - npm test
