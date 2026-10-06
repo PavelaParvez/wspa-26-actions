@@ -3,7 +3,6 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { app } from "../src/app.js";
 import { pool } from "../src/db/pool.js";
 
-
 beforeEach(async () => {
 	await pool.query("DELETE FROM expenses");
 	await pool.query(
@@ -12,7 +11,6 @@ beforeEach(async () => {
 		   ('Bus ticket', 3.20, '2026-08-03')`,
 	);
 });
-
 
 afterAll(async () => {
 	await pool.end();
@@ -27,8 +25,8 @@ describe("GET /api/expenses", () => {
 		const groceries = res.body.find(
 			(e: { description: string }) => e.description === "Groceries",
 		);
-		expect(groceries.amount).toBe(42.5); 
-		expect(groceries.date).toBe("2026-08-01"); 
+		expect(groceries.amount).toBe(42.5);
+		expect(groceries.date).toBe("2026-08-01");
 	});
 });
 
@@ -50,7 +48,7 @@ describe("POST /api/expenses", () => {
 	it("returns 400 when a required field is missing", async () => {
 		const res = await request(app)
 			.post("/api/expenses")
-			.send({ description: "Broken", date: "2026-08-10" }); 
+			.send({ description: "Broken", date: "2026-08-10" });
 
 		expect(res.status).toBe(400);
 	});

@@ -59,9 +59,8 @@ export async function updateExpense(
 }
 
 export async function deleteExpense(id: string): Promise<boolean> {
-	const { rowCount } = await pool.query(
-		"DELETE FROM expenses WHERE id = $1",
-		[id],
-	);
+	const { rowCount } = await pool.query("DELETE FROM expenses WHERE id = $1", [
+		id,
+	]);
 	return rowCount !== null && rowCount > 0;
 }

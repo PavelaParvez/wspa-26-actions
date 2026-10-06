@@ -1,20 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { toExpense } from "../src/store/expense.js";
 
-
 describe("toExpense", () => {
 	it("converts a NUMERIC string amount into a number", () => {
-		
 		const row = {
 			id: "11111111-1111-1111-1111-111111111111",
 			description: "Coffee",
 			amount: "3.50",
 			date: new Date("2026-08-01T00:00:00Z"),
 		};
-	
+
 		const expense = toExpense(row);
-	
-		      expect(expense.amount).toBe(3.5);
+
+		expect(expense.amount).toBe(3.5);
 		expect(typeof expense.amount).toBe("number");
 	});
 
